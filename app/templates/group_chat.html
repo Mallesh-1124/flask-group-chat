@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="chat-container">
+        <h1 class="text-center mb-4">{{ group.name }} Chat</h1>
+
+        {% if current_user.id == group.owner_id %}
+            <a href="{{ url_for('clear_history', group_id=group.id) }}" class="btn btn-danger mb-3">Clear History</a>
+        {% endif %}
+
+        <div id="chat-box" class="chat-box">
+            {% for message in messages %}
+                <div class="message-wrapper {% if message.author.id == current_user.id %}message-sent{% else %}message-received{% endif %}">
+                    <div class="message-bubble">
+                        <div class="message-author">{{ message.author.username }}</div>
+                        <div class="message-content">{{ message.content }}</div>
+                        <div class="message-timestamp">{{ message.timestamp.strftime('%H:%M') }}</div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <form id="message-form" class="message-input-form">
+            <input type="text" class="form-control" id="message-input" placeholder="Type your message..." autocomplete="off">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i></button>
+        </form>
+
+        <hr class="my-4">
+
+        <h2 class="mb-3">Shared Files</h2>
+        <ul class="list-group mb-4 file-list">
+            {% for file in files %}
+                <li class="list-group-item">
+                    <a href="{{ url_for('download_file', file_id=file.id) }}" class="file-link">
+                        <i class="fas fa-file"></i>
+                        <div>
+                            <div>{{ file.filename }}</div>
+                            <small class="text-muted">Uploaded by {{ file.uploader.username }} on {{ file.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+                        </div>
+                    </a>
+                </li>
+            {% else %}
+                <li class="list-group-item">No files shared yet.</li>
+            {% endfor %}
+        </ul>
+
+        <form id="file-upload-form" method="POST" enctype="multipart/form-data" action="{{ url_for('upload_file', group_id=group.id) }}" class="file-upload-form">
+            <div class="input-group">
+                <div class="custom-file">
+                    <input type="file" class="custom-file-input" id="file" name="file">
+                    <label class="custom-file-label" for="file">Choose file</label>
+                </div>
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+<script>
+    // Update custom file input label
+    document.querySelector('.custom-file-input').addEventListener('change', function(e) {
+        var fileName = e.target.files[0].name;
+        var nextSibling = e.target.nextElementSibling;
+        nextSibling.innerText = fileName;
+    });
+</script>
+<script type="text/javascript">
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    var room = {{ group.id }};
+
+    socket.on('connect', function() {
+        socket.emit('join', {username: '{{ current_user.username }}', room: room});
+    });
+
+    socket.on('message', function(data) {
+        var chatBox = document.getElementById('chat-box');
+        var messageWrapper = document.createElement('div');
+        messageWrapper.classList.add('message-wrapper');
+        if (data.username === '{{ current_user.username }}') {
+            messageWrapper.classList.add('message-sent');
+        } else {
+            messageWrapper.classList.add('message-received');
+        }
+
+        var messageBubble = document.createElement('div');
+        messageBubble.classList.add('message-bubble');
+        messageBubble.innerHTML = '<div class="message-author">' + data.username + '</div>' +
+                                '<div class="message-content">' + data.msg + '</div>' +
+                                '<div class="message-timestamp">' + new Date(data.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + '</div>';
+        
+        messageWrapper.appendChild(messageBubble);
+        chatBox.appendChild(messageWrapper);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    });
+
+    document.getElementById('message-form').onsubmit = function(e) {
+        e.preventDefault();
+        var input = document.getElementById('message-input');
+        var msg = input.value;
+        if (msg.trim() !== '') {
+            socket.emit('message', {msg: msg, room: room});
+            input.value = '';
+        }
+    };
+</script>
+{% endblock %}

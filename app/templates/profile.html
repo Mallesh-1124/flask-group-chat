@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <h3 class="card-title">{{ current_user.username }}</h3>
+                    <p class="text-muted">{{ current_user.email }}</p>
+                    <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm mt-2">Logout</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="content-section mb-4">
+                        <form method="POST" action="">
+                            {{ form.hidden_tag() }}
+                            <fieldset class="form-group">
+                                <legend class="border-bottom mb-4">Update Account Info</legend>
+                                <div class="form-group">
+                                    {{ form.username.label(class="form-control-label") }}
+                                    {{ form.username(class="form-control form-control-lg") }}
+                                    {% if form.username.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.username.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="form-group">
+                                    {{ form.email.label(class="form-control-label") }}
+                                    {{ form.email(class="form-control form-control-lg") }}
+                                    {% if form.email.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.email.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="form-group">
+                                    {{ form.password.label(class="form-control-label") }}
+                                    {{ form.password(class="form-control form-control-lg") }}
+                                    {% if form.password.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.password.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="form-group">
+                                    {{ form.confirm_password.label(class="form-control-label") }}
+                                    {{ form.confirm_password(class="form-control form-control-lg") }}
+                                    {% if form.confirm_password.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.confirm_password.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </fieldset>
+                            <div class="form-group">
+                                {{ form.submit(class="btn btn-primary") }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h2 class="mb-3">Your Uploaded Files</h2>
+                    <ul class="list-group mb-4 file-list">
+                        {% for file in user_files %}
+                            <li class="list-group-item">
+                                <a href="{{ url_for('download_file', file_id=file.id) }}" class="file-link">
+                                    <i class="fas fa-file"></i>
+                                    <div>
+                                        <div>{{ file.filename }}</div>
+                                        <small class="text-muted">Uploaded to group {{ file.group.name }} on {{ file.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+                                    </div>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="list-group-item">No files uploaded yet.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

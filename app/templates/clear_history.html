@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="content-section">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    <fieldset class="form-group">
+                        <legend class="border-bottom mb-4">Clear History for {{ group.name }}</legend>
+                        <p>Are you sure you want to clear the chat and file history for this group? This action cannot be undone.</p>
+                        <div class="form-group">
+                            {{ form.passkey.label(class="form-control-label") }}
+                            {{ form.passkey(class="form-control form-control-lg") }}
+                            {% if form.passkey.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.passkey.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </fieldset>
+                    <div class="form-group">
+                        {{ form.submit(class="btn btn-danger btn-lg btn-block") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="hero-section text-center py-5">
+        <h1 class="display-4">Welcome to Group Chat!</h1>
+        <p class="lead">Connect with your friends and colleagues in real-time.</p>
+        <a href="{{ url_for('create_group') }}" class="btn btn-primary btn-lg mt-3">Create New Group</a>
+    </div>
+
+    <h2 class="mb-4">Your Groups</h2>
+    <div class="row">
+        {% for group in groups %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title">{{ group.name }}</h3>
+                        <p class="card-text">Owner: {{ group.owner.username }}</p>
+                        <a href="{{ url_for('group_chat', group_id=group.id) }}" class="btn btn-primary">Join Chat</a>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info" role="alert">
+                    You haven't joined or created any groups yet. <a href="{{ url_for('create_group') }}" class="alert-link">Create one now!</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

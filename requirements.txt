@@ -1,0 +1,9 @@
+Flask
+Flask-SocketIO
+Flask-SQLAlchemy
+Flask-Login
+Flask-WTF
+Werkzeug
+python-engineio
+python-socketio
+gunicorn
