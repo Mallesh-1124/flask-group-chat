@@ -7,3 +7,4 @@ Werkzeug
 python-engineio
 python-socketio
 gunicorn
+email_validator
