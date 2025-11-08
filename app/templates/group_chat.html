@@ -68,7 +68,7 @@
     });
 </script>
 <script type="text/javascript">
-    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    var socket = io.connect(window.location.origin);
     var room = {{ group.id }};
 
     socket.on('connect', function() {
