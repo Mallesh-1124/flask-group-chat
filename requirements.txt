@@ -8,4 +8,5 @@ python-engineio
 python-socketio
 gunicorn
 email_validator
-eventlet
+eventlet>=0.33.0
+
