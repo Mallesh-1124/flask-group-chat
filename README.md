@@ -1,204 +1,259 @@
 # Flask Group Chat Application
 
-A real-time group chat application built with Flask, Flask-SocketIO, and Flask-SQLAlchemy, featuring user authentication, group creation with optional passkeys, real-time messaging, file sharing, and a responsive user interface with theme toggling.
+A real-time group chat application built with **Flask**, **Flask-SocketIO**, and **Flask-SQLAlchemy** — featuring secure authentication, group creation with optional passkeys, real-time messaging, file sharing, a modern responsive UI, and full light/dark theme support.
 
-## Features
+---
 
-*   **User Registration and     Login:** Secure user authentication system.
-*   **Group Creation:** Users can create their own chat groups.
-*   **Optional Passkeys for Group Access:** Groups can be protected with a passkey for exclusive access.
-*   **Real-time Group Chat:** Instant messaging within groups using WebSockets (Flask-SocketIO).
-*   **File Sharing:** Users can upload and share files within their groups.
-*   **User Profiles:** View and update user account information.
-*   **Clear Chat and File History:** Group owners can clear the entire chat and file history of a group after confirming their passkey.
-*   **Responsive Design:** User interface adapts to various screen sizes (desktops, tablets, mobile).
-*   **Light/Dark Theme Toggling:** Switch between light and dark themes for personalized viewing.
+## ✨ Features
 
-## Technologies Used
+- **User Registration & Login** — Secure authentication with password hashing via Werkzeug
+- **Group Creation** — Create public or passkey-protected private groups
+- **Real-time Messaging** — Instant WebSocket-powered chat via Flask-SocketIO
+- **Typing Indicators** — Live "user is typing…" indicators in chat
+- **File Sharing** — Upload and share files (images, PDFs, docs, etc.) within groups
+- **File Type Validation** — Only whitelisted file extensions are accepted for upload
+- **Read Receipts** — Messages track who has read them
+- **User Profiles** — View and update username, email, and password
+- **Clear Chat History** — Group owners can wipe the entire message history
+- **Responsive UI** — Fully mobile-optimised with a collapsible file sidebar on small screens
+- **Light / Dark Theme** — Persistent theme switching saved to localStorage
+- **Toast Notifications** — Auto-dismissing flash messages for all user actions
 
-*   **Backend:**
-    *   [Flask](https://flask.palletsprojects.com/): Web framework.
-    *   [Flask-SocketIO](https://flask-socketio.readthedocs.io/en/latest/): Integrates Socket.IO with Flask for real-time communication.
-    *   [Flask-SQLAlchemy](https://flask-sqlalchemy.palletsprojects.com/en/3.1/): ORM for database interactions.
-    *   [Flask-Login](https://flask-login.readthedocs.io/en/latest/): Manages user sessions.
-    *   [Flask-WTF](https://flask-wtf.readthedocs.io/en/1.2.x/): Integration with WTForms for web forms.
-    *   [Werkzeug](https://werkzeug.palletsprojects.com/en/3.0.x/): WSGI utility library (used for password hashing).
-    *   [python-engineio](https://python-engineio.readthedocs.io/en/latest/): Low-level Engine.IO server.
-    *   [python-socketio](https://python-socketio.readthedocs.io/en/latest/): Python Socket.IO client and server.
-*   **Frontend:**
-    *   [Socket.IO Client](https://socket.io/docs/v4/client-api/): JavaScript library for real-time communication.
-    *   [Bootstrap 5](https://getbootstrap.com/docs/5.0/getting-started/introduction/): CSS framework for responsive and modern UI components.
-    *   [Font Awesome](https://fontawesome.com/): Icon library.
-*   **Database:**
-    *   SQLite (default, for development)
-    *   PostgreSQL (for production)
+---
 
-## Screenshots
+## 🔒 Security
 
-*(Please add screenshots of the application here to showcase the UI and features.)*
+- **CSRF Protection** — All forms (including raw HTML forms) protected via Flask-WTF `CSRFProtect`
+- **XSS Prevention** — Chat messages rendered with `textContent` (never `innerHTML`)
+- **Authenticated WebSocket Handlers** — All SocketIO events verify `current_user.is_authenticated`
+- **Safe Redirect Handling** — `?next=` redirects after login validated against open-redirect attacks
+- **File Upload Whitelist** — Blocks executable/script uploads
+- **Passkey Hashing** — Group passkeys stored as hashes, never in plaintext
+- **SECRET_KEY Warning** — App warns at startup if `SECRET_KEY` is not set in the environment
 
-## Setup Instructions
+---
 
-Follow these steps to get the project up and running on your local machine.
+## 🛠 Technologies Used
+
+### Backend
+| Package | Purpose |
+|---------|---------|
+| [Flask 3.0](https://flask.palletsprojects.com/) | Web framework |
+| [Flask-SocketIO 5.3](https://flask-socketio.readthedocs.io/) | Real-time WebSocket communication |
+| [Flask-SQLAlchemy 3.1](https://flask-sqlalchemy.palletsprojects.com/) | ORM (SQLAlchemy 2 compatible) |
+| [Flask-Login 0.6](https://flask-login.readthedocs.io/) | Session management |
+| [Flask-WTF 1.2](https://flask-wtf.readthedocs.io/) | Form handling & CSRF protection |
+| [Flask-Migrate 4.0](https://flask-migrate.readthedocs.io/) | Database schema migrations |
+| [Werkzeug 3.0](https://werkzeug.palletsprojects.com/) | Password hashing, WSGI utilities |
+| [Cloudinary](https://cloudinary.com/documentation) | Cloud file storage |
+| [python-dotenv](https://pypi.org/project/python-dotenv/) | Environment variable loading |
+| [Gunicorn](https://gunicorn.org/) | Production WSGI server |
+
+### Frontend
+| Library | Purpose |
+|---------|---------|
+| [Bootstrap 5.3](https://getbootstrap.com/) | Responsive layout & components |
+| [Font Awesome 6.5](https://fontawesome.com/) | Icon library |
+| [Inter (Google Fonts)](https://fonts.google.com/specimen/Inter) | Primary typeface |
+| [Socket.IO Client 4.0](https://socket.io/docs/v4/) | Real-time WebSocket client |
+
+### Database
+- **SQLite** — Development (auto-created at `instance/site.db`)
+- **PostgreSQL** — Recommended for production
+
+---
+
+## 📁 Folder Structure
+
+```
+flask-group-chat/
+├── app/
+│   ├── __init__.py          # App factory, extensions, global config
+│   ├── routes.py            # URL routes and view functions
+│   ├── models.py            # Database models (User, Group, Message, File, MessageReadReceipt)
+│   ├── forms.py             # WTForms form classes
+│   ├── events.py            # Socket.IO event handlers
+│   ├── static/
+│   │   ├── css/
+│   │   │   └── style.css    # Design system (tokens, components, responsive)
+│   │   └── uploads/         # Local upload directory (dev only)
+│   └── templates/
+│       ├── base.html        # Base layout (navbar, flash toasts, theme toggle)
+│       ├── home.html        # Group listing with hero banner
+│       ├── login.html       # Login page
+│       ├── register.html    # Registration page
+│       ├── profile.html     # User profile & file history
+│       ├── create_group.html # Group creation form
+│       ├── group_chat.html  # Chat interface with file sidebar
+│       ├── enter_passkey.html # Passkey entry for private groups
+│       └── clear_history.html # Clear history confirmation
+├── instance/
+│   └── site.db              # SQLite database (dev, git-ignored)
+├── .gitignore               # Excludes venv, .env, instance/, __pycache__
+├── requirements.txt         # Python dependencies
+├── run.py                   # App entry point
+└── README.md
+```
+
+---
+
+## ⚙️ Setup Instructions
 
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository_url>
-cd FLASK
+git clone https://github.com/Mallesh-1124/flask-group-chat.git
+cd flask-group-chat
 ```
 
-### 2. Create a Python Virtual Environment
-
-It's recommended to use a virtual environment to manage project dependencies.
+### 2. Create & Activate a Virtual Environment
 
 ```bash
 python -m venv venv
+
+# Windows
+.\venv\Scripts\activate
+
+# macOS / Linux
+source venv/bin/activate
 ```
 
-### 3. Activate the Virtual Environment
-
-*   **Windows:**
-    ```bash
-    .\venv\Scripts\activate
-    ```
-*   **macOS/Linux:**
-    ```bash
-    source venv/bin/activate
-    ```
-
-### 4. Install Dependencies
-
-Install the required Python packages using pip:
+### 3. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 5. Database Setup
+### 4. Configure Environment Variables
 
-The application uses SQLite for local development. The database file (`instance/site.db`) is automatically created when the application runs for the first time.
+Create a `.env` file in the project root:
 
-### 6. Set Flask Secret Key
+```env
+SECRET_KEY=your_long_random_secret_key_here
+FLASK_DEBUG=true
 
-Set a strong secret key for Flask. This is crucial for session security.
+# Required for file uploads (get free keys at cloudinary.com)
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
 
-*   **Windows (PowerShell):**
-    ```powershell
-    $env:SECRET_KEY="your_super_secret_key_here"
-    ```
-*   **macOS/Linux:**
-    ```bash
-    export SECRET_KEY="your_super_secret_key_here"
-    ```
-    Replace `"your_super_secret_key_here"` with a long, random string.
-
-## Running the Application
-
-Once the setup is complete, you can run the Flask application:
-
-```bash
-flask run
+# Optional: PostgreSQL for production
+# SQLALCHEMY_DATABASE_URI=postgresql://user:password@host/dbname
 ```
 
-The application will typically be available at `http://127.0.0.1:5000/`.
+### 5. Initialise the Database
 
-## Deployment on Render
+```bash
+python -c "from app import app, db; app.app_context().push(); db.create_all(); print('DB created')"
+```
 
-This application is ready to be deployed on Render. Here are the steps to deploy it:
+### 6. Run the App
+
+```bash
+python run.py
+```
+
+Open **http://localhost:5000** in your browser.
+
+---
+
+## 🚀 Deployment on Render
 
 ### 1. Push to GitHub
 
-Create a new repository on GitHub and push your code to it.
-
 ```bash
-git init
 git add .
-git commit -m "Initial commit"
-git branch -M main
-git remote add origin <your_github_repository_url>
-git push -u origin main
+git commit -m "deploy"
+git push origin main
 ```
 
 ### 2. Create a Web Service on Render
 
-*   Go to the [Render Dashboard](https://dashboard.render.com/) and click "New +" > "Web Service".
-*   Connect your GitHub account and select your repository.
-*   Give your service a name.
+- Go to [Render Dashboard](https://dashboard.render.com/) → **New +** → **Web Service**
+- Connect your GitHub repo
 
 ### 3. Configure the Service
 
-*   **Environment:** Python
-*   **Region:** Choose a region close to you.
-*   **Branch:** main
-*   **Build Command:** `pip install -r requirements.txt`
-*   **Start Command:** `gunicorn run:app`
+| Setting | Value |
+|---------|-------|
+| Environment | Python |
+| Build Command | `pip install -r requirements.txt` |
+| Start Command | `gunicorn --worker-class eventlet -w 1 run:app` |
 
 ### 4. Add a PostgreSQL Database
 
-*   Go to the [Render Dashboard](https://dashboard.render.com/) and click "New +" > "PostgreSQL".
-*   Give your database a name and create it.
-*   Copy the "Internal Connection URL" for your database.
+- Render Dashboard → **New +** → **PostgreSQL**
+- Copy the **Internal Connection URL**
 
-### 5. Set Environment Variables
+### 5. Set Environment Variables (Render → Environment tab)
 
-*   Go to your Web Service's "Environment" tab.
-*   Add the following environment variables:
-    *   `SECRET_KEY`: A long, random string for your Flask secret key.
-    *   `SQLALCHEMY_DATABASE_URI`: The internal connection URL of your PostgreSQL database.
+| Variable | Value |
+|----------|-------|
+| `SECRET_KEY` | A long random string |
+| `SQLALCHEMY_DATABASE_URI` | PostgreSQL internal connection URL |
+| `CLOUDINARY_CLOUD_NAME` | Your Cloudinary cloud name |
+| `CLOUDINARY_API_KEY` | Your Cloudinary API key |
+| `CLOUDINARY_API_SECRET` | Your Cloudinary API secret |
 
-### 6. Update the Application for Production
+---
 
-To use PostgreSQL in production, you need to update the `__init__.py` file to use the `SQLALCHEMY_DATABASE_URI` environment variable.
+## 📋 Changelog
 
-**In `app/__init__.py`:**
+### v2.0.0 — Security & UI Overhaul *(May 2026)*
 
-```python
-import os
+#### 🔴 Critical Bug Fixes
+- Fixed `User.query.get()` → `db.session.get()` (removed in SQLAlchemy 2 — caused crash on every page load)
+- Fixed duplicate password hashing in the register route; now correctly uses `user.set_password()`
+- Fixed login to use `user.check_password()` instead of calling `check_password_hash` directly
+- Fixed **XSS vulnerability** in real-time chat: replaced `innerHTML` with `textContent` for all incoming messages
+- Fixed all SocketIO event handlers to verify `current_user.is_authenticated` (anonymous connections previously caused a server crash)
+- Fixed `?next=` redirect after login (was silently ignored); now safely validated against open-redirect attacks
 
-# ... other imports
+#### 🟠 Deprecation Fixes
+- Fixed `lazy='dynamic'` on all relationships → `lazy='select'` (deprecated in SQLAlchemy 2)
+- Fixed `MessageReadReceipt`/`Message` relationship conflict — replaced mixed `backref`/`back_populates` with explicit `back_populates` on both sides
+- Fixed all Bootstrap 4 class usage (`btn-block`, `custom-file`, `custom-file-input`, `input-group-append`) → Bootstrap 5 equivalents
 
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI') or 'sqlite:///../instance/site.db'
+#### 🔒 Security Improvements
+- Added global **CSRF protection** (`CSRFProtect`) — all forms, including raw HTML upload/clear-history forms, now include CSRF tokens
+- Added **file extension whitelist** to uploads (blocks `.exe`, `.php`, `.html`, etc.)
+- Added **group membership check** before allowing file upload
+- Added `@login_required` decorator to the `logout` route
+- Added `RuntimeWarning` at startup if `SECRET_KEY` is not set in the environment
+- Added `SQLALCHEMY_TRACK_MODIFICATIONS = False` to suppress SQLAlchemy warnings
 
-# ... rest of the file
-```
+#### ✨ New UI Features
+- **Complete UI redesign** with Inter font, indigo/violet design system, and curated dark/light color tokens
+- **Smart theme toggle** with sun/moon icon that persists across sessions
+- **Toast-style flash messages** with auto-dismiss after 4.5 seconds and icon-per-category
+- **Responsive chat layout** — two-column (messages + file sidebar) on desktop, collapsible sidebar on mobile
+- **Chat header** with group avatar (initial letter), member count, and quick-action buttons
+- **Home page** redesigned with hero banner, group cards with avatar initials, owner badge, and private group lock indicator
+- **Auth pages** (login/register) with centred card layout, password show/hide toggle, and inline field validation
+- **Profile page** with sticky sidebar, group/file stats, and responsive two-column settings form
+- **Create Group** and **Enter Passkey** pages with action-card layout, passkey hint, and password visibility toggle
+- **File sidebar** with smart file-type icons (image, PDF, Word, Excel, ZIP, video, audio)
+- **Typing indicators** shown in real-time when other users are typing
+- Added confirmation dialog to the destructive Clear History button
+- `run.py` now reads `FLASK_DEBUG` and `PORT` from environment variables
 
-### 7. Add Gunicorn to requirements.txt
+#### 🔵 Code Quality
+- Moved `import cloudinary.uploader` to top of `routes.py` (was inside function body)
+- Home route now queries only the current user's groups (was returning all groups in the DB)
+- Added `.gitignore` excluding `venv/`, `.env`, `instance/`, `__pycache__/`, and `app/static/uploads/`
 
-Add `gunicorn` to your `requirements.txt` file:
+---
 
-```
-gunicorn
-```
+## 🤝 Contributing
 
-After completing these steps, your application should be successfully deployed on Render.
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Commit your changes: `git commit -m "feat: add your feature"`
+4. Push to the branch: `git push origin feature/your-feature`
+5. Open a Pull Request
 
-## Folder Structure
+---
 
-```
-.
-├── app/
-│   ├── __init__.py             # Application initialization and configuration
-│   ├── routes.py               # Defines URL routes and view functions
-│   ├── models.py               # Database models (User, Group, Message, File)
-│   ├── forms.py                # Web forms using Flask-WTF
-│   ├── events.py               # Socket.IO event handlers
-│   ├── static/                 # Static assets (CSS, JS, images)
-│   │   ├── css/                # Stylesheets
-│   │   └── uploads/            # Directory for uploaded files
-│   └── templates/              # HTML templates
-│       ├── base.html           # Base template for common layout
-│       ├── home.html           # Homepage
-│       ├── profile.html        # User profile page
-│       ├── login.html          # User login page
-│       ├── register.html       # User registration page
-│       ├── create_group.html   # Group creation page
-│       ├── group_chat.html     # Group chat interface
-│       ├── enter_passkey.html  # Passkey entry page for protected groups
-│       └── clear_history.html  # Clear history confirmation page
-├── instance/
-│   └── site.db                 # SQLite database file (for development)
-├── requirements.txt            # Python dependencies
-└── run.py                      # Entry point to run the application
-```
+## 📄 License
+
+This project is open-source. Feel free to use and modify it.
