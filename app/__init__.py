@@ -27,9 +27,16 @@ _db_url = (
     os.environ.get('SQLALCHEMY_DATABASE_URI')
 )
 if _db_url:
-    # Fix Render's legacy "postgres://" prefix
-    if _db_url.startswith('postgres://'):
+    _db_url = _db_url.strip()
+    # If the user accidentally copy-pasted the instructions as the value
+    if "Auto-set" in _db_url or "PostgreSQL" in _db_url or not "://" in _db_url:
+        print(f"❌ ERROR: Invalid DATABASE_URL detected: '{_db_url}'")
+        print("Falling back to local SQLite database.")
+        _db_url = None
+    elif _db_url.startswith('postgres://'):
         _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
+    
+if _db_url:
     app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
 else:
     # Local development: SQLite
