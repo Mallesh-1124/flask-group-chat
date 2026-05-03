@@ -93,12 +93,20 @@ def profile():
 @app.route('/home')
 @login_required
 def home():
-    # Fix: show only the groups the current user is a member of (or owns)
-    groups = Group.query.filter(
+    # Groups the current user is a member of (or owns)
+    my_groups = Group.query.filter(
         (Group.owner_id == current_user.id) |
         Group.members.any(id=current_user.id)
     ).all()
-    return render_template('home.html', groups=groups)
+    
+    # Groups the user is NOT in
+    my_group_ids = [g.id for g in my_groups]
+    if my_group_ids:
+        available_groups = Group.query.filter(~Group.id.in_(my_group_ids)).all()
+    else:
+        available_groups = Group.query.all()
+
+    return render_template('home.html', groups=my_groups, available_groups=available_groups)
 
 
 @app.route('/group/<int:group_id>', methods=['GET', 'POST'])

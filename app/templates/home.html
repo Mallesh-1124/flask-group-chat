@@ -61,5 +61,43 @@
             </div>
         {% endfor %}
     </div>
+
+    <!-- Discover Groups Grid -->
+    <div class="d-flex align-items-center justify-content-between mb-3 mt-5">
+        <div class="section-heading mb-0">
+            <i class="fas fa-globe" style="color:var(--clr-accent)"></i>
+            Discover Groups
+        </div>
+        <small class="text-muted">{{ available_groups|length }} available</small>
+    </div>
+
+    <div class="row g-3">
+        {% for group in available_groups %}
+            <div class="col-12 col-sm-6 col-lg-4">
+                <div class="group-card">
+                    <div class="d-flex align-items-start">
+                        <div class="group-avatar" style="background: linear-gradient(135deg, var(--txt-muted), var(--clr-accent));">{{ group.name[0].upper() }}</div>
+                        {% if group.passkey %}
+                            <span class="lock-badge ms-auto">
+                                <i class="fas fa-lock"></i> Private
+                            </span>
+                        {% endif %}
+                    </div>
+                    <h3>{{ group.name }}</h3>
+                    <div class="owner-badge">
+                        <i class="fas fa-user-circle"></i>
+                        Created by {{ group.owner.username }}
+                    </div>
+                    <a href="{{ url_for('group_chat', group_id=group.id) }}" class="btn btn-outline-secondary" style="margin-top: auto;">
+                        <i class="fas fa-sign-in-alt"></i> Join Group
+                    </a>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-12">
+                <p class="text-muted text-center py-4" style="border: 1px dashed var(--brd-card); border-radius: var(--r-md);">No other groups available to join right now.</p>
+            </div>
+        {% endfor %}
+    </div>
 </div>
 {% endblock %}

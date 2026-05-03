@@ -38,21 +38,21 @@
                         </a>
                     </li>
                 </ul>
-                <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0">
-                    <button id="theme-toggle" aria-label="Toggle dark mode">
+                <div class="d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center gap-2 mt-3 mt-lg-0 pb-3 pb-lg-0 border-top border-lg-0 pt-3 pt-lg-0" style="border-color: var(--brd-card) !important;">
+                    <button id="theme-toggle" aria-label="Toggle dark mode" class="justify-content-center">
                         <i class="fas fa-moon" id="theme-icon"></i>
                         <span id="theme-label">Dark</span>
                     </button>
                     {% if current_user.is_authenticated %}
-                        <a class="btn-nav btn-nav-outline" href="{{ url_for('profile') }}">
+                        <a class="btn-nav btn-nav-outline text-center" href="{{ url_for('profile') }}">
                             <i class="fas fa-user"></i> {{ current_user.username }}
                         </a>
-                        <a class="btn-nav btn-nav-danger" href="{{ url_for('logout') }}">
+                        <a class="btn-nav btn-nav-danger text-center" href="{{ url_for('logout') }}">
                             <i class="fas fa-sign-out-alt"></i> Logout
                         </a>
                     {% else %}
-                        <a class="btn-nav btn-nav-outline" href="{{ url_for('login') }}">Login</a>
-                        <a class="btn-nav btn-nav-solid" href="{{ url_for('register') }}">Sign Up</a>
+                        <a class="btn-nav btn-nav-outline text-center" href="{{ url_for('login') }}">Login</a>
+                        <a class="btn-nav btn-nav-solid text-center" href="{{ url_for('register') }}">Sign Up</a>
                     {% endif %}
                 </div>
             </div>
