@@ -52,7 +52,7 @@ db = SQLAlchemy(app)
 socketio = SocketIO(
     app,
     cors_allowed_origins="*",
-    async_mode='eventlet' if os.environ.get('DATABASE_URL') else None
+    async_mode='gevent' if os.environ.get('DATABASE_URL') else None
 )
 
 login_manager = LoginManager(app)
