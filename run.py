@@ -1,6 +1,9 @@
-from app import app, socketio, db
+from dotenv import load_dotenv
+load_dotenv()
+
+import os
+from app import app, socketio
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    socketio.run(app, debug=True)
+    debug_mode = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
+    socketio.run(app, debug=debug_mode, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))

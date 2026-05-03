@@ -1,29 +1,65 @@
 {% extends "base.html" %}
+{% block title %}Home – ChatGroups{% endblock %}
 {% block content %}
-    <div class="hero-section text-center py-5">
-        <h1 class="display-4">Welcome to Group Chat!</h1>
-        <p class="lead">Connect with your friends and colleagues in real-time.</p>
-        <a href="{{ url_for('create_group') }}" class="btn btn-primary btn-lg mt-3">Create New Group</a>
+<div class="page-wrapper">
+
+    <!-- Hero Banner -->
+    <div class="hero-section text-center">
+        <h1><i class="fas fa-comments me-2"></i>Welcome back, {{ current_user.username }}!</h1>
+        <p>Jump into a conversation or start a new group with your team.</p>
+        <a href="{{ url_for('create_group') }}" class="btn">
+            <i class="fas fa-plus"></i> Create New Group
+        </a>
     </div>
 
-    <h2 class="mb-4">Your Groups</h2>
-    <div class="row">
+    <!-- Groups Grid -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="section-heading">
+            <i class="fas fa-layer-group" style="color:var(--clr-primary)"></i>
+            Your Groups
+        </div>
+        <small class="text-muted">{{ groups|length }} group{{ 's' if groups|length != 1 else '' }}</small>
+    </div>
+
+    <div class="row g-3">
         {% for group in groups %}
-            <div class="col-md-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h3 class="card-title">{{ group.name }}</h3>
-                        <p class="card-text">Owner: {{ group.owner.username }}</p>
-                        <a href="{{ url_for('group_chat', group_id=group.id) }}" class="btn btn-primary">Join Chat</a>
+            <div class="col-12 col-sm-6 col-lg-4">
+                <div class="group-card">
+                    <div class="d-flex align-items-start">
+                        <div class="group-avatar">{{ group.name[0].upper() }}</div>
+                        {% if group.passkey %}
+                            <span class="lock-badge ms-auto">
+                                <i class="fas fa-lock"></i> Private
+                            </span>
+                        {% endif %}
                     </div>
+                    <h3>{{ group.name }}</h3>
+                    <div class="owner-badge">
+                        <i class="fas fa-user-circle"></i>
+                        {{ group.owner.username }}
+                        {% if group.owner_id == current_user.id %}
+                            <span class="badge-lock" style="background:rgba(34,197,94,.12);color:#22c55e;">
+                                <i class="fas fa-crown"></i> Owner
+                            </span>
+                        {% endif %}
+                    </div>
+                    <a href="{{ url_for('group_chat', group_id=group.id) }}" class="btn btn-primary">
+                        <i class="fas fa-arrow-right"></i> Open Chat
+                    </a>
                 </div>
             </div>
         {% else %}
             <div class="col-12">
-                <div class="alert alert-info" role="alert">
-                    You haven't joined or created any groups yet. <a href="{{ url_for('create_group') }}" class="alert-link">Create one now!</a>
+                <div class="empty-state">
+                    <i class="fas fa-comments"></i>
+                    <p style="font-size:1.05rem;font-weight:600;margin-bottom:.4rem;">No groups yet</p>
+                    <p style="font-size:.9rem;">Create a group or wait to be added to one.</p>
+                    <a href="{{ url_for('create_group') }}" class="btn btn-primary mt-3">
+                        <i class="fas fa-plus"></i> Create Group
+                    </a>
                 </div>
             </div>
         {% endfor %}
     </div>
+</div>
 {% endblock %}

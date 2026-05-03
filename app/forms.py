@@ -2,6 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from app.models import User
+from flask_login import current_user
 
 class RegistrationForm(FlaskForm):
     username = StringField('Username',
@@ -56,6 +57,4 @@ class UpdateAccountForm(FlaskForm):
             if user:
                 raise ValidationError('That email is taken. Please choose a different one.')
 
-class ConfirmPasskeyForm(FlaskForm):
-    passkey = PasswordField('Passkey', validators=[DataRequired()])
-    submit = SubmitField('Confirm')
+

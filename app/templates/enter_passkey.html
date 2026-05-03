@@ -1,17 +1,59 @@
 {% extends "base.html" %}
+{% block title %}Join {{ group.name }} – ChatGroups{% endblock %}
 {% block content %}
-    <div class="content-section">
+<div class="action-page">
+    <div class="action-card">
+        <div class="auth-logo" style="background:linear-gradient(135deg,#f59e0b,#ef4444);">
+            <i class="fas fa-lock"></i>
+        </div>
+        <h2>Private Group</h2>
+        <p class="action-sub">
+            <strong>{{ group.name }}</strong> is password-protected.
+            Enter the passkey to join.
+        </p>
+
         <form method="POST" action="">
-            <fieldset class="form-group">
-                <legend class="border-bottom mb-4">Enter Passkey for {{ group.name }}</legend>
-                <div class="form-group">
-                    <label for="passkey">Passkey</label>
-                    <input type="password" class="form-control" id="passkey" name="passkey" required>
-                </div>
-            </fieldset>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
             <div class="form-group">
-                <button type="submit" class="btn btn-outline-info">Enter</button>
+                <label class="form-label" for="passkey-input">Passkey</label>
+                <div style="position:relative;">
+                    <input type="password" name="passkey" id="passkey-input"
+                           class="form-control" placeholder="Enter group passkey"
+                           required autofocus>
+                    <button type="button" id="toggle-pw"
+                            style="position:absolute;right:.9rem;top:50%;transform:translateY(-50%);
+                                   background:none;border:none;color:var(--txt-muted);cursor:pointer;font-size:.9rem;"
+                            aria-label="Show/hide passkey">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
             </div>
+
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:.8rem;">
+                <i class="fas fa-door-open me-1"></i>Join Group
+            </button>
         </form>
+
+        <a href="{{ url_for('home') }}" class="back-link">
+            <i class="fas fa-arrow-left me-1"></i>Back to Home
+        </a>
     </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('toggle-pw').addEventListener('click', function() {
+        var field = document.getElementById('passkey-input');
+        var icon  = this.querySelector('i');
+        if (field.type === 'password') {
+            field.type = 'text';
+            icon.className = 'fas fa-eye-slash';
+        } else {
+            field.type = 'password';
+            icon.className = 'fas fa-eye';
+        }
+    });
+</script>
 {% endblock %}

@@ -1,93 +1,127 @@
 {% extends "base.html" %}
+{% block title %}Profile – ChatGroups{% endblock %}
 {% block content %}
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-body text-center">
-                    <h3 class="card-title">{{ current_user.username }}</h3>
-                    <p class="text-muted">{{ current_user.email }}</p>
-                    <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm mt-2">Logout</a>
+<div class="page-wrapper mt-page">
+    <div class="row g-4">
+
+        <!-- Left sidebar card -->
+        <div class="col-12 col-md-4 col-lg-3">
+            <div class="profile-sidebar">
+                <div class="profile-avatar">{{ current_user.username[0].upper() }}</div>
+                <h3>{{ current_user.username }}</h3>
+                <p>{{ current_user.email }}</p>
+                <hr style="border-color:var(--brd-card);margin:1.25rem 0;">
+                <div style="font-size:.82rem;color:var(--txt-muted);margin-bottom:.4rem;">
+                    <i class="fas fa-layer-group me-1"></i>
+                    Member of {{ current_user.chat_groups|length }} group{{ 's' if current_user.chat_groups|length != 1 else '' }}
                 </div>
+                <div style="font-size:.82rem;color:var(--txt-muted);">
+                    <i class="fas fa-file me-1"></i>
+                    {{ user_files|length }} file{{ 's' if user_files|length != 1 else '' }} uploaded
+                </div>
+                <a href="{{ url_for('logout') }}" class="btn btn-danger w-100 mt-3" style="justify-content:center;font-size:.88rem;">
+                    <i class="fas fa-sign-out-alt"></i> Sign Out
+                </a>
             </div>
         </div>
-        <div class="col-md-8">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="content-section mb-4">
-                        <form method="POST" action="">
-                            {{ form.hidden_tag() }}
-                            <fieldset class="form-group">
-                                <legend class="border-bottom mb-4">Update Account Info</legend>
-                                <div class="form-group">
-                                    {{ form.username.label(class="form-control-label") }}
-                                    {{ form.username(class="form-control form-control-lg") }}
-                                    {% if form.username.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in form.username.errors %}
-                                                <span>{{ error }}</span>
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                <div class="form-group">
-                                    {{ form.email.label(class="form-control-label") }}
-                                    {{ form.email(class="form-control form-control-lg") }}
-                                    {% if form.email.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in form.email.errors %}
-                                                <span>{{ error }}</span>
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                <div class="form-group">
-                                    {{ form.password.label(class="form-control-label") }}
-                                    {{ form.password(class="form-control form-control-lg") }}
-                                    {% if form.password.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in form.password.errors %}
-                                                <span>{{ error }}</span>
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                <div class="form-group">
-                                    {{ form.confirm_password.label(class="form-control-label") }}
-                                    {{ form.confirm_password(class="form-control form-control-lg") }}
-                                    {% if form.confirm_password.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in form.confirm_password.errors %}
-                                                <span>{{ error }}</span>
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </fieldset>
+
+        <!-- Right content -->
+        <div class="col-12 col-md-8 col-lg-9">
+
+            <!-- Update account form -->
+            <div class="profile-main mb-4">
+                <div class="section-label">Account Settings</div>
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    <div class="row g-3">
+                        <div class="col-12 col-sm-6">
                             <div class="form-group">
-                                {{ form.submit(class="btn btn-primary") }}
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <h2 class="mb-3">Your Uploaded Files</h2>
-                    <ul class="list-group mb-4 file-list">
-                        {% for file in user_files %}
-                            <li class="list-group-item">
-                                <a href="{{ url_for('download_file', file_id=file.id) }}" class="file-link">
-                                    <i class="fas fa-file"></i>
-                                    <div>
-                                        <div>{{ file.filename }}</div>
-                                        <small class="text-muted">Uploaded to group {{ file.group.name }} on {{ file.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+                                {{ form.username.label(class="form-label") }}
+                                {{ form.username(class="form-control") }}
+                                {% if form.username.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.username.errors %}<span>{{ error }}</span>{% endfor %}
                                     </div>
-                                </a>
-                            </li>
-                        {% else %}
-                            <li class="list-group-item">No files uploaded yet.</li>
-                        {% endfor %}
-                    </ul>
-                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <div class="form-group">
+                                {{ form.email.label(class="form-label") }}
+                                {{ form.email(class="form-control") }}
+                                {% if form.email.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.email.errors %}<span>{{ error }}</span>{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <div class="form-group">
+                                {{ form.password.label(class="form-label") }}
+                                {{ form.password(class="form-control", placeholder="Leave blank to keep current") }}
+                                {% if form.password.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.password.errors %}<span>{{ error }}</span>{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <div class="form-group">
+                                {{ form.confirm_password.label(class="form-label") }}
+                                {{ form.confirm_password(class="form-control", placeholder="Repeat new password") }}
+                                {% if form.confirm_password.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.confirm_password.errors %}<span>{{ error }}</span>{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </div>
+                </form>
             </div>
+
+            <!-- Uploaded files -->
+            <div class="profile-main">
+                <div class="section-label">Your Uploaded Files</div>
+                {% if user_files %}
+                    <div style="display:flex;flex-direction:column;gap:.5rem;">
+                        {% for file in user_files %}
+                            <a href="{{ file.filepath }}" target="_blank" class="file-item"
+                               style="border:1px solid var(--brd-card);border-radius:var(--r-md);padding:.65rem .85rem;">
+                                <div class="file-item-icon">
+                                    {% set ext = file.filename.split('.')[-1].lower() if '.' in file.filename else '' %}
+                                    {% if ext in ['jpg','jpeg','png','gif','webp'] %}<i class="fas fa-image"></i>
+                                    {% elif ext == 'pdf' %}<i class="fas fa-file-pdf"></i>
+                                    {% elif ext in ['doc','docx'] %}<i class="fas fa-file-word"></i>
+                                    {% elif ext in ['xls','xlsx'] %}<i class="fas fa-file-excel"></i>
+                                    {% elif ext == 'zip' %}<i class="fas fa-file-zipper"></i>
+                                    {% else %}<i class="fas fa-file"></i>{% endif %}
+                                </div>
+                                <div class="file-item-info" style="flex:1;min-width:0;">
+                                    <div class="file-item-name">{{ file.filename }}</div>
+                                    <div class="file-item-meta">
+                                        Group: {{ file.group.name }} &nbsp;·&nbsp;
+                                        {{ file.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                                    </div>
+                                </div>
+                                <i class="fas fa-external-link-alt" style="color:var(--txt-muted);font-size:.8rem;"></i>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div style="text-align:center;padding:2.5rem 1rem;color:var(--txt-muted);">
+                        <i class="fas fa-folder-open" style="font-size:2rem;opacity:.3;display:block;margin-bottom:.6rem;"></i>
+                        <p style="font-size:.88rem;">You haven't uploaded any files yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+
         </div>
     </div>
+</div>
 {% endblock %}

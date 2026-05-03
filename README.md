@@ -4,7 +4,7 @@ A real-time group chat application built with Flask, Flask-SocketIO, and Flask-S
 
 ## Features
 
-*   **User Registration and Login:** Secure user authentication system.
+*   **User Registration and     Login:** Secure user authentication system.
 *   **Group Creation:** Users can create their own chat groups.
 *   **Optional Passkeys for Group Access:** Groups can be protected with a passkey for exclusive access.
 *   **Real-time Group Chat:** Instant messaging within groups using WebSockets (Flask-SocketIO).

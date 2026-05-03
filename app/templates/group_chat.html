@@ -1,109 +1,371 @@
 {% extends "base.html" %}
+{% block title %}{{ group.name }} – ChatGroups{% endblock %}
 {% block content %}
-    <div class="chat-container">
-        <h1 class="text-center mb-4">{{ group.name }} Chat</h1>
 
-        {% if current_user.id == group.owner_id %}
-            <a href="{{ url_for('clear_history', group_id=group.id) }}" class="btn btn-danger mb-3">Clear History</a>
-        {% endif %}
+<div class="chat-page">
+    <!-- ===== CHAT HEADER ===== -->
+    <div class="chat-header">
+        <div class="chat-header-avatar">{{ group.name[0].upper() }}</div>
+        <div class="chat-header-info">
+            <h2>{{ group.name }}</h2>
+            <span id="member-count">{{ group.members|length }} member{{ 's' if group.members|length != 1 else '' }}</span>
+        </div>
+        <div class="chat-header-actions">
+            <!-- Search bar -->
+            <div class="search-bar d-none d-md-flex" style="align-items: center; background: var(--bg-input); border: 1px solid var(--brd-input); border-radius: var(--r-pill); padding: 0.2rem 0.6rem;">
+                <i class="fas fa-search" style="color: var(--txt-muted); font-size: 0.8rem;"></i>
+                <input type="text" id="message-search" placeholder="Search messages..." style="border: none; background: transparent; outline: none; padding-left: 0.5rem; font-size: 0.85rem; color: var(--txt-base); width: 120px;">
+            </div>
+            <!-- Files sidebar toggle (mobile) -->
+            <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle files panel">
+                <i class="fas fa-paperclip"></i>
+                <span class="d-none d-sm-inline">Files</span>
+            </button>
+            {% if current_user.id == group.owner_id %}
+                <form action="{{ url_for('clear_history', group_id=group.id) }}" method="POST" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger" style="font-size:.8rem;padding:.4rem .85rem;border-radius:var(--r-md);"
+                            onclick="return confirm('Clear ALL chat history? This cannot be undone.')">
+                        <i class="fas fa-trash-alt"></i>
+                        <span class="d-none d-md-inline">Clear History</span>
+                    </button>
+                </form>
+            {% endif %}
+            <a href="{{ url_for('home') }}" class="btn btn-outline-secondary"
+               style="font-size:.8rem;padding:.4rem .85rem;border-radius:var(--r-md);">
+                <i class="fas fa-arrow-left"></i>
+                <span class="d-none d-md-inline">Back</span>
+            </a>
+        </div>
+    </div>
 
-        <div id="chat-box" class="chat-box">
-            {% for message in messages %}
-                <div class="message-wrapper {% if message.author.id == current_user.id %}message-sent{% else %}message-received{% endif %}">
-                    <div class="message-bubble">
+    <!-- ===== CHAT BODY (messages + sidebar) ===== -->
+    <div class="chat-body">
+
+        <!-- Messages column -->
+        <div class="chat-messages">
+            <div id="chat-box" class="chat-box">
+                {% for message in messages %}
+                    <div class="message-wrapper {% if message.author.id == current_user.id %}message-sent{% else %}message-received{% endif %}" data-message-id="{{ message.id }}">
                         <div class="message-author">{{ message.author.username }}</div>
-                        <div class="message-content">{{ message.content }}</div>
-                        <div class="message-timestamp">{{ message.timestamp.strftime('%H:%M') }}</div>
+                        <div class="message-bubble" style="position:relative;">
+                            <div class="message-content">{{ message.content }}</div>
+                            {% if message.author.id == current_user.id %}
+                            <button class="delete-msg-btn" onclick="deleteMessage({{ message.id }})" aria-label="Delete message">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                        <div class="message-timestamp">
+                            {{ message.timestamp.strftime('%H:%M') }}
+                            {% if message.author.id == current_user.id %}
+                                <span class="read-receipt" id="receipt-{{ message.id }}">
+                                    {% if message.read_by_users %}
+                                        <i class="fas fa-check-double text-primary" style="font-size: 0.6rem; margin-left: 3px;"></i>
+                                    {% else %}
+                                        <i class="fas fa-check" style="font-size: 0.6rem; margin-left: 3px; color: var(--txt-muted);"></i>
+                                    {% endif %}
+                                </span>
+                            {% endif %}
+                        </div>
                     </div>
-                </div>
-            {% endfor %}
+                {% else %}
+                    <div style="text-align:center;padding:3rem 1rem;color:var(--txt-muted);">
+                        <i class="fas fa-comments" style="font-size:2.5rem;opacity:.3;display:block;margin-bottom:.75rem;"></i>
+                        <p style="font-size:.9rem;">No messages yet. Say hello!</p>
+                    </div>
+                {% endfor %}
+
+                <div class="typing-indicator" id="typing-indicator"></div>
+            </div>
+
+            <!-- Message input -->
+            <div class="chat-input-area">
+                <form id="message-form" class="message-input-form">
+                    <input type="text" id="message-input" placeholder="Type a message…" autocomplete="off" maxlength="2000">
+                    <button type="submit" class="send-btn" aria-label="Send message">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
         </div>
 
-        <form id="message-form" class="message-input-form">
-            <input type="text" class="form-control" id="message-input" placeholder="Type your message..." autocomplete="off">
-            <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i></button>
-        </form>
+        <!-- ===== FILES SIDEBAR ===== -->
+        <div class="chat-sidebar" id="chat-sidebar">
+            <div class="chat-sidebar-header">
+                <span><i class="fas fa-paperclip me-1"></i> Shared Files</span>
+                <small class="text-muted">{{ files|length }}</small>
+            </div>
 
-        <hr class="my-4">
-
-        <h2 class="mb-3">Shared Files</h2>
-        <ul class="list-group mb-4 file-list">
-            {% for file in files %}
-                <li class="list-group-item">
-                    <a href="{{ url_for('download_file', file_id=file.id) }}" class="file-link">
-                        <i class="fas fa-file"></i>
-                        <div>
-                            <div>{{ file.filename }}</div>
-                            <small class="text-muted">Uploaded by {{ file.uploader.username }} on {{ file.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+            <div class="file-list-area">
+                {% for file in files %}
+                    <a href="{{ url_for('download_file', file_id=file.id) }}" class="file-item">
+                        <div class="file-item-icon">
+                            {% set ext = file.filename.split('.')[-1].lower() if '.' in file.filename else '' %}
+                            {% if ext in ['jpg','jpeg','png','gif','webp'] %}
+                                <img src="{{ file.filepath }}" alt="{{ file.filename }}" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;">
+                            {% elif ext in ['pdf'] %}
+                                <i class="fas fa-file-pdf"></i>
+                            {% elif ext in ['doc','docx'] %}
+                                <i class="fas fa-file-word"></i>
+                            {% elif ext in ['xls','xlsx'] %}
+                                <i class="fas fa-file-excel"></i>
+                            {% elif ext in ['zip'] %}
+                                <i class="fas fa-file-zipper"></i>
+                            {% elif ext in ['mp4'] %}
+                                <i class="fas fa-file-video"></i>
+                            {% elif ext in ['mp3'] %}
+                                <i class="fas fa-file-audio"></i>
+                            {% else %}
+                                <i class="fas fa-file"></i>
+                            {% endif %}
+                        </div>
+                        <div class="file-item-info">
+                            <div class="file-item-name">{{ file.filename }}</div>
+                            <div class="file-item-meta">
+                                {{ file.uploader.username }} · {{ file.timestamp.strftime('%b %d') }}
+                            </div>
                         </div>
                     </a>
-                </li>
-            {% else %}
-                <li class="list-group-item">No files shared yet.</li>
-            {% endfor %}
-        </ul>
-
-        <form id="file-upload-form" method="POST" enctype="multipart/form-data" action="{{ url_for('upload_file', group_id=group.id) }}" class="file-upload-form">
-            <div class="input-group">
-                <div class="custom-file">
-                    <input type="file" class="custom-file-input" id="file" name="file">
-                    <label class="custom-file-label" for="file">Choose file</label>
-                </div>
-                <div class="input-group-append">
-                    <button type="submit" class="btn btn-primary">Upload</button>
-                </div>
+                {% else %}
+                    <div style="text-align:center;padding:2rem 1rem;color:var(--txt-muted);">
+                        <i class="fas fa-folder-open" style="font-size:1.8rem;opacity:.3;display:block;margin-bottom:.5rem;"></i>
+                        <p style="font-size:.8rem;">No files shared yet</p>
+                    </div>
+                {% endfor %}
             </div>
-        </form>
-    </div>
+
+            <!-- Upload -->
+            <div class="file-upload-area">
+                <form method="POST" enctype="multipart/form-data"
+                      action="{{ url_for('upload_file', group_id=group.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="file" class="form-control" id="file" name="file">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-cloud-upload-alt"></i> Upload
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div><!-- /chat-body -->
+</div><!-- /chat-page -->
+
 {% endblock %}
 
 {% block scripts %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+<script src="{{ url_for('static', filename='js/crypto.js') }}"></script>
 <script>
-    // Update custom file input label
-    document.querySelector('.custom-file-input').addEventListener('change', function(e) {
-        var fileName = e.target.files[0].name;
-        var nextSibling = e.target.nextElementSibling;
-        nextSibling.innerText = fileName;
-    });
-</script>
-<script type="text/javascript">
-    var socket = io.connect('http://' + document.domain + ':' + location.port);
-    var room = {{ group.id }};
+    var socket = io();
+    var room   = {{ group.id }};
+    var me     = '{{ current_user.username }}';
+    var groupKey = null;
 
-    socket.on('connect', function() {
-        socket.emit('join', {username: '{{ current_user.username }}', room: room});
-    });
-
-    socket.on('message', function(data) {
-        var chatBox = document.getElementById('chat-box');
-        var messageWrapper = document.createElement('div');
-        messageWrapper.classList.add('message-wrapper');
-        if (data.username === '{{ current_user.username }}') {
-            messageWrapper.classList.add('message-sent');
-        } else {
-            messageWrapper.classList.add('message-received');
-        }
-
-        var messageBubble = document.createElement('div');
-        messageBubble.classList.add('message-bubble');
-        messageBubble.innerHTML = '<div class="message-author">' + data.username + '</div>' +
-                                '<div class="message-content">' + data.msg + '</div>' +
-                                '<div class="message-timestamp">' + new Date(data.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + '</div>';
+    // Initialize encryption key
+    async function initCrypto() {
+        // Derive key from group ID + simple salt
+        // In a real E2E system, this key would be exchanged securely.
+        groupKey = await deriveKey("group-" + room + "-secret-key");
         
-        messageWrapper.appendChild(messageBubble);
-        chatBox.appendChild(messageWrapper);
-        chatBox.scrollTop = chatBox.scrollHeight;
+        // Decrypt all existing messages on load
+        const messageElements = document.querySelectorAll('.message-content');
+        for (let el of messageElements) {
+            const encryptedText = el.textContent;
+            const decryptedText = await decryptMessage(groupKey, encryptedText);
+            if (decryptedText !== encryptedText) {
+                el.textContent = decryptedText;
+            }
+        }
+    }
+    initCrypto();
+
+    // Join room on connect
+    socket.on('connect', function() {
+        socket.emit('join', {username: me, room: room});
     });
 
-    document.getElementById('message-form').onsubmit = function(e) {
+    // Scroll helper
+    function scrollBottom() {
+        var box = document.getElementById('chat-box');
+        box.scrollTop = box.scrollHeight;
+    }
+
+    // Send message
+    document.getElementById('message-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         var input = document.getElementById('message-input');
-        var msg = input.value;
-        if (msg.trim() !== '') {
-            socket.emit('message', {msg: msg, room: room});
+        var msg   = input.value.trim();
+        if (msg) {
+            var encryptedMsg = await encryptMessage(groupKey, msg);
+            socket.emit('message', {msg: encryptedMsg, room: room});
             input.value = '';
+            input.focus();
         }
-    };
+    });
+
+    // Typing indicators
+    var typingTimer;
+    var isTyping = false;
+
+    document.getElementById('message-input').addEventListener('input', function() {
+        if (!isTyping) {
+            socket.emit('typing_start', {room: room});
+            isTyping = true;
+        }
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(function() {
+            socket.emit('typing_stop', {room: room});
+            isTyping = false;
+        }, 1500);
+    });
+
+    socket.on('typing_start', function(data) {
+        var el = document.getElementById('typing-indicator');
+        el.textContent = data.username + ' is typing…';
+        el.classList.add('active');
+    });
+
+    socket.on('typing_stop', function() {
+        document.getElementById('typing-indicator').classList.remove('active');
+    });
+
+    // Delete message function
+    function deleteMessage(messageId) {
+        if (confirm('Delete this message?')) {
+            socket.emit('delete_message', { message_id: messageId, room: room });
+        }
+    }
+
+    // Search functionality
+    document.getElementById('message-search').addEventListener('input', function(e) {
+        var term = e.target.value.toLowerCase();
+        var messages = document.querySelectorAll('.message-wrapper');
+        messages.forEach(function(msg) {
+            var text = msg.querySelector('.message-content').textContent.toLowerCase();
+            if (text.includes(term)) {
+                msg.style.display = 'flex';
+            } else {
+                msg.style.display = 'none';
+            }
+        });
+    });
+
+    // Intersection Observer for Read Receipts
+    var observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                var msgEl = entry.target;
+                var msgId = msgEl.getAttribute('data-message-id');
+                if (msgId && !msgEl.classList.contains('message-sent')) {
+                    socket.emit('message_read', { message_id: msgId, room: room });
+                    observer.unobserve(msgEl);
+                }
+            }
+        });
+    }, { threshold: 1.0 });
+
+    function observeMessages() {
+        document.querySelectorAll('.message-wrapper.message-received').forEach(el => {
+            observer.observe(el);
+        });
+    }
+
+    // Build a message DOM element
+    function buildMessage(username, content, timestamp, isSelf, msgId) {
+        var wrapper = document.createElement('div');
+        wrapper.className = 'message-wrapper ' + (isSelf ? 'message-sent' : 'message-received');
+        if (msgId) wrapper.setAttribute('data-message-id', msgId);
+
+        if (!isSelf) {
+            var author = document.createElement('div');
+            author.className = 'message-author';
+            author.textContent = username;
+            wrapper.appendChild(author);
+        }
+
+        var bubble = document.createElement('div');
+        bubble.className = 'message-bubble';
+        bubble.style.position = 'relative';
+
+        var content_div = document.createElement('div');
+        content_div.className = 'message-content';
+        content_div.textContent = content;
+        bubble.appendChild(content_div);
+
+        if (isSelf && msgId) {
+            var delBtn = document.createElement('button');
+            delBtn.className = 'delete-msg-btn';
+            delBtn.setAttribute('aria-label', 'Delete message');
+            delBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+            delBtn.onclick = function() { deleteMessage(msgId); };
+            bubble.appendChild(delBtn);
+        }
+
+        wrapper.appendChild(bubble);
+
+        var ts = document.createElement('div');
+        ts.className = 'message-timestamp';
+        ts.textContent = new Date(timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        
+        if (isSelf && msgId) {
+            var receipt = document.createElement('span');
+            receipt.className = 'read-receipt';
+            receipt.id = 'receipt-' + msgId;
+            receipt.innerHTML = '<i class="fas fa-check" style="font-size: 0.6rem; margin-left: 3px; color: var(--txt-muted);"></i>';
+            ts.appendChild(receipt);
+        }
+        
+        wrapper.appendChild(ts);
+
+        return wrapper;
+    }
+
+    // Receive message
+    socket.on('message', async function(data) {
+        var rawContent = data.msg;
+        var colonIdx = rawContent.indexOf(': ');
+        var content = (colonIdx !== -1) ? rawContent.slice(colonIdx + 2) : rawContent;
+
+        if (!data.username) { return; }
+        
+        // Decrypt received message
+        if (groupKey) {
+            content = await decryptMessage(groupKey, content);
+        }
+
+        var isSelf = (data.username === me);
+        var msgEl  = buildMessage(data.username, content, data.timestamp, isSelf, data.message_id);
+        var box    = document.getElementById('chat-box');
+
+        var emptyState = box.querySelector('.empty-state-msg');
+        if (emptyState) emptyState.remove();
+
+        box.insertBefore(msgEl, document.getElementById('typing-indicator'));
+        scrollBottom();
+        
+        if (!isSelf) {
+            observer.observe(msgEl);
+        }
+    });
+
+    socket.on('message_read_status_update', function(data) {
+        var receiptEl = document.getElementById('receipt-' + data.message_id);
+        if (receiptEl) {
+            receiptEl.innerHTML = '<i class="fas fa-check-double text-primary" style="font-size: 0.6rem; margin-left: 3px;"></i>';
+        }
+    });
+
+    socket.on('message_deleted', function(data) {
+        var msgEl = document.querySelector(`.message-wrapper[data-message-id="${data.message_id}"]`);
+        if (msgEl) {
+            msgEl.remove();
+        }
+    });
+
+    window.addEventListener('load', () => {
+        scrollBottom();
+        observeMessages();
+    });
 </script>
 {% endblock %}

@@ -1,0 +1,17 @@
+:root {
+  --bg: #ffffff;
+  --surface: #f8f9fa;
+  --text: #212529;
+  --muted: #6c757d;
+  --primary: #0d6efd;
+}
+[data-theme="dark"] {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --text: #e6edf3;
+  --muted: #9aa7b5;
+  --primary: #3da3ff;
+}
+body { background: var(--bg); color: var(--text); }
+.bg-surface { background: var(--surface); }
+.auth-card, .form-card { max-width: 420px; }
