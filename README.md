@@ -1,4 +1,4 @@
-# Flask Group Chat Application
+# Group Chat Application
 
 A real-time group chat application built with **Flask**, **Flask-SocketIO**, and **Flask-SQLAlchemy** — featuring secure authentication, group creation with optional passkeys, real-time messaging, file sharing, a modern responsive UI, and full light/dark theme support.
 
