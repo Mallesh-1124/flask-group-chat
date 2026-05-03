@@ -35,6 +35,12 @@ class CreateGroupForm(FlaskForm):
     passkey = PasswordField('Passkey (optional)')
     submit = SubmitField('Create Group')
 
+class ManageGroupForm(FlaskForm):
+    name = StringField('Group Name', validators=[DataRequired(), Length(min=2, max=50)])
+    passkey = PasswordField('New Passkey (leave blank to keep current)')
+    remove_passkey = SubmitField('Remove Passkey')
+    submit = SubmitField('Update Group')
+
 class UpdateAccountForm(FlaskForm):
     username = StringField('Username',
                            validators=[DataRequired(), Length(min=2, max=20)])

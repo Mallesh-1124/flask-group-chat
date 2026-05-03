@@ -146,6 +146,54 @@ def create_group():
     return render_template('create_group.html', title='Create Group', form=form)
 
 
+@app.route('/group/<int:group_id>/manage', methods=['GET', 'POST'])
+@login_required
+def manage_group(group_id):
+    group = Group.query.get_or_404(group_id)
+    if group.owner_id != current_user.id:
+        flash('Only the group owner can manage the group settings.', 'danger')
+        return redirect(url_for('group_chat', group_id=group.id))
+        
+    from app.forms import ManageGroupForm
+    form = ManageGroupForm()
+    
+    if form.validate_on_submit():
+        if form.remove_passkey.data:
+            group.passkey = None
+            db.session.commit()
+            flash('Passkey removed successfully.', 'success')
+            return redirect(url_for('manage_group', group_id=group.id))
+            
+        group.name = form.name.data
+        if form.passkey.data:
+            group.passkey = generate_password_hash(form.passkey.data)
+        db.session.commit()
+        flash('Group settings updated!', 'success')
+        return redirect(url_for('group_chat', group_id=group.id))
+        
+    elif request.method == 'GET':
+        form.name.data = group.name
+        
+    return render_template('manage_group.html', title='Manage Group', form=form, group=group)
+
+
+@app.route('/group/<int:group_id>/delete', methods=['POST'])
+@login_required
+def delete_group(group_id):
+    group = Group.query.get_or_404(group_id)
+    if group.owner_id != current_user.id:
+        flash('Only the group owner can delete the group.', 'danger')
+        return redirect(url_for('group_chat', group_id=group.id))
+        
+    # Delete associated files and messages first
+    File.query.filter_by(group_id=group.id).delete()
+    Message.query.filter_by(group_id=group.id).delete()
+    
+    db.session.delete(group)
+    db.session.commit()
+    flash(f'Group "{group.name}" has been deleted.', 'success')
+    return redirect(url_for('home'))
+
 @app.route('/upload_file/<int:group_id>', methods=['POST'])
 @login_required
 def upload_file(group_id):

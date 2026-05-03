@@ -22,6 +22,10 @@
                 <span class="d-none d-sm-inline">Files</span>
             </button>
             {% if current_user.id == group.owner_id %}
+                <a href="{{ url_for('manage_group', group_id=group.id) }}" class="btn btn-outline-secondary" style="font-size:.8rem;padding:.4rem .85rem;border-radius:var(--r-md);">
+                    <i class="fas fa-cog"></i>
+                    <span class="d-none d-md-inline">Manage</span>
+                </a>
                 <form action="{{ url_for('clear_history', group_id=group.id) }}" method="POST" style="display:inline;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-danger" style="font-size:.8rem;padding:.4rem .85rem;border-radius:var(--r-md);"

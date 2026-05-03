@@ -31,7 +31,7 @@ class User(db.Model, UserMixin):
 class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
-    passkey = db.Column(db.String(100), nullable=True)
+    passkey = db.Column(db.Text, nullable=True)
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     owner = db.relationship('User', backref='owned_groups', lazy=True)
     # Fix: lazy='dynamic' is deprecated in SQLAlchemy 2 → use 'select' (default eager list)
