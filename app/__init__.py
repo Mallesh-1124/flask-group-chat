@@ -33,8 +33,10 @@ if _db_url:
         print(f"❌ ERROR: Invalid DATABASE_URL detected: '{_db_url}'")
         print("Falling back to local SQLite database.")
         _db_url = None
-    elif _db_url.startswith('postgres://'):
-        _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
+    elif _db_url.startswith('postgres://') or _db_url.startswith('postgresql://'):
+        # Force SQLAlchemy to use the new psycopg v3 driver
+        _db_url = _db_url.replace('postgres://', 'postgresql+psycopg://', 1)
+        _db_url = _db_url.replace('postgresql://', 'postgresql+psycopg://', 1)
     
 if _db_url:
     app.config['SQLALCHEMY_DATABASE_URI'] = _db_url

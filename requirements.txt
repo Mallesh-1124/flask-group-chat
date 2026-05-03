@@ -13,4 +13,4 @@ Flask-Migrate==4.0.5
 email_validator
 gevent==24.11.1
 gevent-websocket==0.10.1
-psycopg2-binary==2.9.9
+psycopg[binary]
