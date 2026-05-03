@@ -11,3 +11,5 @@ cloudinary==1.37.0
 python-dotenv==1.0.0
 Flask-Migrate==4.0.5
 email_validator
+eventlet==0.36.1
+psycopg2-binary==2.9.9

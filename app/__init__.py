@@ -19,19 +19,42 @@ if not secret_key:
     secret_key = 'change-me-in-production-please'
 
 app.config['SECRET_KEY'] = secret_key
-app.config['SQLALCHEMY_DATABASE_URI'] = (
-    'sqlite:///' + os.path.join(
-        os.path.abspath(os.path.join(os.path.dirname(__file__), '..')),
-        'instance', 'site.db'
-    )
+
+# --- Database: use DATABASE_URL / SQLALCHEMY_DATABASE_URI env var in production ---
+# Render/Heroku provide DATABASE_URL with "postgres://" prefix; SQLAlchemy needs "postgresql://"
+_db_url = (
+    os.environ.get('DATABASE_URL') or
+    os.environ.get('SQLALCHEMY_DATABASE_URI')
 )
+if _db_url:
+    # Fix Render's legacy "postgres://" prefix
+    if _db_url.startswith('postgres://'):
+        _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
+else:
+    # Local development: SQLite
+    app.config['SQLALCHEMY_DATABASE_URI'] = (
+        'sqlite:///' + os.path.join(
+            os.path.abspath(os.path.join(os.path.dirname(__file__), '..')),
+            'instance', 'site.db'
+        )
+    )
+
 app.config['UPLOAD_FOLDER'] = os.path.join(
     os.path.abspath(os.path.dirname(__file__)), 'static/uploads'
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
-socketio = SocketIO(app)
+
+# Use eventlet in production (when gunicorn/eventlet worker is active),
+# fall back to default threading mode for local dev
+socketio = SocketIO(
+    app,
+    cors_allowed_origins="*",
+    async_mode='eventlet' if os.environ.get('DATABASE_URL') else None
+)
+
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 csrf = CSRFProtect(app)  # Global CSRF protection for all POST forms
